@@ -1,60 +1,58 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
+import React from 'react';
+import { Text, TextProps, TextStyle } from 'react-native';
+import useThemeColor from '../hooks/useThemeColor';
 
-import { useThemeColor } from '@/hooks/useThemeColor';
-
-export type ThemedTextProps = TextProps & {
+interface ThemedTextProps extends TextProps {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
-};
+  variant?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'body2' | 'caption' | 'button';
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  color?: 'primary' | 'secondary' | 'error' | 'warning' | 'success' | 'text' | 'disabled' | string;
+}
 
-export function ThemedText({
+export default function ThemedText({
   style,
   lightColor,
   darkColor,
-  type = 'default',
-  ...rest
+  variant = 'body',
+  weight = 'normal',
+  color = 'text',
+  ...props
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const textColor = useThemeColor({ light: lightColor, dark: darkColor }, 
+    color === 'text' ? 'text' : color === 'primary' ? 'primary' : 
+    color === 'secondary' ? 'secondary' : color === 'error' ? 'error' : 
+    color === 'warning' ? 'warning' : color === 'success' ? 'success' : 
+    color === 'disabled' ? 'disabled' : 'text');
+
+  const variantStyles: Record<ThemedTextProps['variant'], TextStyle> = {
+    h1: { fontSize: 32, lineHeight: 40, fontWeight: '700' },
+    h2: { fontSize: 28, lineHeight: 36, fontWeight: '700' },
+    h3: { fontSize: 24, lineHeight: 32, fontWeight: '600' },
+    h4: { fontSize: 20, lineHeight: 28, fontWeight: '600' },
+    h5: { fontSize: 18, lineHeight: 26, fontWeight: '600' },
+    body: { fontSize: 16, lineHeight: 24, fontWeight: '400' },
+    body2: { fontSize: 14, lineHeight: 22, fontWeight: '400' },
+    caption: { fontSize: 12, lineHeight: 18, fontWeight: '400' },
+    button: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
+  };
+
+  const weightStyles: Record<ThemedTextProps['weight'], { fontWeight: TextStyle['fontWeight'] }> = {
+    normal: { fontWeight: '400' },
+    medium: { fontWeight: '500' },
+    semibold: { fontWeight: '600' },
+    bold: { fontWeight: '700' },
+  };
 
   return (
     <Text
       style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        variantStyles[variant],
+        weightStyles[weight],
+        { color: color.startsWith('#') ? color : textColor },
         style,
       ]}
-      {...rest}
+      {...props}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
-  },
-});
